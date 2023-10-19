@@ -89,6 +89,8 @@ class TodoListPageState extends State<TodoListPage> {
           child: const Text("ボタン"),
           ),
           ListView.builder(
+             shrinkWrap: true,   //追加
+           physics: const NeverScrollableScrollPhysics(), 
             itemCount: todoList.length,
             itemBuilder: (context, index) {
               return Card(
