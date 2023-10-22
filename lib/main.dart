@@ -8,6 +8,7 @@ void main() {
 class MyTodoApp extends StatelessWidget {
   const MyTodoApp({super.key});
 
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -31,27 +32,34 @@ class NewWidget extends StatelessWidget {
     super.key,
   });
 
-  @override
+@override                                                    //tabバー
   Widget build(BuildContext context) {
-    return const TextField(
-      autofocus: true, //TextFieldが表示されるときにフォーカスする（キーボードを表示する）
-      cursorColor: Colors.white, //カーソルの色
-      style: TextStyle( //テキストのスタイル
-        color: Colors.white,
-        fontSize: 20,
-      ),
-      textInputAction: TextInputAction.search, //キーボードのアクションボタンを指定
-      decoration: InputDecoration( //TextFiledのスタイル
-        enabledBorder: UnderlineInputBorder( //デフォルトのTextFieldの枠線
-          borderSide: BorderSide(color: Colors.white)
+    return DefaultTabController(
+      initialIndex: 0, // 最初に表示するタブ
+      length: 3, // タブの数
+      child: Scaffold(
+        appBar: AppBar(
+
+          bottom: const TabBar(
+            tabs: <Widget>[
+              Tab(text: '野球'),
+              Tab(text: 'サッカー'),
+              Tab(text: 'テニス'),
+            ],
+          ),
         ),
-        focusedBorder: UnderlineInputBorder( //TextFieldにフォーカス時の枠線
-          borderSide: BorderSide(color: Colors.white)
-        ),
-        hintText: 'Search', //何も入力してないときに表示されるテキスト
-        hintStyle: TextStyle( //hintTextのスタイル
-          color: Colors.white60,
-          fontSize: 20,
+        body: const TabBarView(
+          children: <Widget>[
+            Center(
+              child: Text('野球', style: TextStyle(fontSize: 32.0)),
+            ),
+            Center(
+              child: Text('サッカー', style: TextStyle(fontSize: 32.0)),
+            ),
+            Center(
+              child: Text('テニス', style: TextStyle(fontSize: 32.0)),
+            ),
+          ],
         ),
       ),
     );
