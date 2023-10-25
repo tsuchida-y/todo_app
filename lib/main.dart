@@ -8,7 +8,6 @@ void main() {
 class MyTodoApp extends StatelessWidget {
   const MyTodoApp({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -32,14 +31,13 @@ class NewWidget extends StatelessWidget {
     super.key,
   });
 
-@override                                                    //tabバー
+  @override //tabバー
   Widget build(BuildContext context) {
     return DefaultTabController(
       initialIndex: 0, // 最初に表示するタブ
       length: 3, // タブの数
       child: Scaffold(
         appBar: AppBar(
-
           bottom: const TabBar(
             tabs: <Widget>[
               Tab(text: '野球'),
@@ -80,56 +78,66 @@ class TodoListPageState extends State<TodoListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // AppBarを表示し、タイトルも設定
-      appBar: AppBar(
-        title: const Text('リスト'),
-      ),
-      // データを元にListViewを作成
-      body: Column(
-        children: [
-          ElevatedButton(onPressed: (){},
-          style: ElevatedButton.styleFrom(
-          fixedSize: const Size(20, 20),
-          alignment: Alignment.topLeft,
-          padding: const EdgeInsets.all(2),
+    return DefaultTabController(
+      length: 3,
+      child: Scaffold(
+        // AppBarを表示し、タイトルも設定
+        appBar: AppBar(
+          bottom: const TabBar(
+            tabs: <Widget>[
+              Tab(text: '野球'),
+              Tab(text: 'サッカー'),
+              Tab(text: 'テニス'),
+            ],
           ),
-          child: const Text("ボタン"),
-          ),
-          ListView.builder(
-             shrinkWrap: true,   //追加
-           physics: const NeverScrollableScrollPhysics(), 
-            itemCount: todoList.length,
-            itemBuilder: (context, index) {
-              return Card(
-                child: ListTile(
-                  title: Text(todoList[index]),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          // "push"で新規画面に遷移
-          // リスト追加画面から渡される値を受け取る
-          final newListText = await Navigator.of(context).push(
-            MaterialPageRoute(builder: (context) {
-              // 遷移先の画面としてリスト追加画面を指定
-              return const TodoAddPage();
-            }),
-          );
-          if (newListText != null) {
-            // キャンセルした場合は newListText が null となるので注意
-            setState(() {
-              // リスト追加
-              todoList.add(newListText);
-            });
-          }
-        },
-        child: const Icon(Icons.add),
-        
+          title: const Text('リスト'),
+        ),
+        // データを元にListViewを作成
+        body: Column(
+          children: [
+            ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                fixedSize: const Size(20, 20),
+                alignment: Alignment.topLeft,
+                padding: const EdgeInsets.all(2),
+              ),
+              child: const Text("ボタン"),
+            ),
+            ListView.builder(
+              shrinkWrap: true, //追加
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: todoList.length,
+              itemBuilder: (context, index) {
+                return Card(
+                  child: ListTile(
+                    title: Text(todoList[index]),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            // "push"で新規画面に遷移
+            // リスト追加画面から渡される値を受け取る
+            final newListText = await Navigator.of(context).push(
+              MaterialPageRoute(builder: (context) {
+                // 遷移先の画面としてリスト追加画面を指定
+                return const TodoAddPage();
+              }),
+            );
+            if (newListText != null) {
+              // キャンセルした場合は newListText が null となるので注意
+              setState(() {
+                // リスト追加
+                todoList.add(newListText);
+              });
+            }
+          },
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
@@ -184,7 +192,8 @@ class TodoAddPageState extends State<TodoAddPage> {
                   // "pop"の引数から前の画面にデータを渡す
                   Navigator.of(context).pop(_text);
                 },
-                child: const Text('リスト追加', style: TextStyle(color: Colors.white)),
+                child:
+                    const Text('リスト追加', style: TextStyle(color: Colors.white)),
               ),
             ),
             const SizedBox(height: 8),
