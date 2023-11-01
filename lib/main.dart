@@ -1,11 +1,25 @@
 import 'package:flutter/material.dart';
-
+import 'package:flutter_database/database_helper.dart';
+  
 void main() {
   // 最初に表示するWidget
   runApp(const MyTodoApp());
+
+  Database db = await openDatabase(                             //db=変数・await=非同期処理完了まで待ち、その結果を取り出す。
+  'example.db',
+  version: 1, // onCreateを指定する場合はバージョンを指定する
+  onCreate: (db, version) async {
+    await db.execute(
+      'CREATE TABLE IF NOT EXISTS posts ('
+      '  id INTEGER PRIMARY KEY AUTOINCREMENT,'                 //AUTOINCREMENT=主キーの値を自動で設定
+      '  content TEXT,'
+      '  created_at INTEGER'
+      ')',
+    );
+  },
+);
 }
 
-//テスト
 class MyTodoApp extends StatelessWidget {
   const MyTodoApp({super.key});
 
@@ -41,6 +55,7 @@ class TodoListPageState extends State<TodoListPage> {
 
   @override
   Widget build(BuildContext context) {
+    //tabバー
     return DefaultTabController(
       length: 3,
       child: Scaffold(
@@ -48,7 +63,7 @@ class TodoListPageState extends State<TodoListPage> {
         appBar: AppBar(
           bottom: const TabBar(
             tabs: <Widget>[
-              Tab(text: '野球'),
+              Tab(text: '卓球'),
               Tab(text: 'サッカー'),
               Tab(text: 'テニス'),
             ],
@@ -65,7 +80,7 @@ class TodoListPageState extends State<TodoListPage> {
                 alignment: Alignment.topLeft,
                 padding: const EdgeInsets.all(2),
               ),
-              child: const Text("ボタン"),
+              child: const Text("検索バー"),
             ),
             ListView.builder(
               shrinkWrap: true, //追加
