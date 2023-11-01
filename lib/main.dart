@@ -3,7 +3,7 @@ import 'package:flutter_database/database_helper.dart';
   
 void main() {
   // 最初に表示するWidget
-  runApp(const MyTodoApp());
+  runApp(const MyTodoApp());//
 
   Database db = await openDatabase(                             //db=変数・await=非同期処理完了まで待ち、その結果を取り出す。
   'example.db',
