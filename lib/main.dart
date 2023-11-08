@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_database/database_helper.dart';
-  
-void main() {
-  // 最初に表示するWidget
-  runApp(const MyTodoApp());//
+import 'package:sqflite/sqflite.dart'; //DBの定義
 
-  Database db = await openDatabase(                             //db=変数・await=非同期処理完了まで待ち、その結果を取り出す。
-  'example.db',
-  version: 1, // onCreateを指定する場合はバージョンを指定する
-  onCreate: (db, version) async {
-    await db.execute(
-      'CREATE TABLE IF NOT EXISTS posts ('
-      '  id INTEGER PRIMARY KEY AUTOINCREMENT,'                 //AUTOINCREMENT=主キーの値を自動で設定
-      '  content TEXT,'
-      '  created_at INTEGER'
-      ')',
-    );
-  },
-);
+Future<void> main() async {
+  //awaitのエラーを解消するために導入した。
+  // 最初に表示するWidget
+  runApp(const MyTodoApp()); //
+
+  Database db = await openDatabase(
+    //db=変数・await=非同期処理完了まで待ち、その結果を取り出す。
+    'example.db',
+    version: 1, // onCreateを指定する場合はバージョンを指定する
+    onCreate: (db, version) async {
+      await db.execute(
+        'CREATE TABLE IF NOT EXISTS posts ('
+        '  id INTEGER PRIMARY KEY AUTOINCREMENT,' //AUTOINCREMENT=主キーの値を自動で設定
+        '  content TEXT,'
+        '  created_at INTEGER'
+        ')',
+      );
+    },
+  );
 }
 
 class MyTodoApp extends StatelessWidget {
