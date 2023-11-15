@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart'; //DBの定義
 
+Database? db;
 Future<void> main() async {
   //awaitのエラーを解消するために導入した。
   // 最初に表示するWidget
   runApp(const MyTodoApp()); //
 
-  Database db = await openDatabase(
+  db = await openDatabase(
+    //DBの初期化
     //db=変数・await=非同期処理完了まで待ち、その結果を取り出す。
     'example.db',
     version: 1, // onCreateを指定する場合はバージョンを指定する
@@ -84,37 +86,44 @@ class TodoListPageState extends State<TodoListPage> {
               ),
               child: const Text("検索バー"),
             ),
-            ListView.builder(
-              shrinkWrap: true, //追加
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: todoList.length,
-              itemBuilder: (context, index) {
-                return Card(
-                  child: ListTile(
-                    title: Text(todoList[index]),
-                  ),
-                );
-              },
-            ),
+            FutureBuilder(
+                future: db?.query(
+                  'posts',
+                  orderBy: 'created_at DESC', // ソート順
+                ),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return ListView.builder(
+                      shrinkWrap: true, //追加
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(
+                                snapshot.data?[index]["content"].toString() ??
+                                    "エラー"),
+                          ),
+                        );
+                      },
+                    );
+                  } else if (snapshot.hasError) {
+                    return Text("エラー");
+                  }
+                  return CircularProgressIndicator();
+                }),
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          onPressed: () async {
+          onPressed: () {
             // "push"で新規画面に遷移
             // リスト追加画面から渡される値を受け取る
-            final newListText = await Navigator.of(context).push(
+            Navigator.of(context).push(
               MaterialPageRoute(builder: (context) {
                 // 遷移先の画面としてリスト追加画面を指定
                 return const TodoAddPage();
               }),
             );
-            if (newListText != null) {
-              // キャンセルした場合は newListText が null となるので注意
-              setState(() {
-                // リスト追加
-                todoList.add(newListText);
-              });
-            }
           },
           child: const Icon(Icons.add),
         ),
@@ -153,7 +162,7 @@ class TodoAddPageState extends State<TodoAddPage> {
             // テキスト入力
             TextField(
               // 入力されたテキストの値を受け取る（valueが入力されたテキスト）
-              onChanged: (String value) {
+              onChanged: (String value) async {
                 // データが変更したことを知らせる（画面を更新する）
                 setState(() {
                   // データを変更
@@ -167,7 +176,15 @@ class TodoAddPageState extends State<TodoAddPage> {
               width: double.infinity,
               // リスト追加ボタン
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
+                  await db?.insert(
+                    //DBに保存
+                    'posts', // テーブル名
+                    {
+                      'content': _text, // カラム名: 値
+                      'created_at': DateTime.now().millisecondsSinceEpoch,
+                    },
+                  );
                   // "pop"で前の画面に戻る
                   // "pop"の引数から前の画面にデータを渡す
                   Navigator.of(context).pop(_text);
@@ -185,6 +202,7 @@ class TodoAddPageState extends State<TodoAddPage> {
                 // ボタンをクリックした時の処理
                 onPressed: () {
                   // "pop"で前の画面に戻る
+
                   Navigator.of(context).pop();
                 },
                 child: const Text('キャンセル'),
