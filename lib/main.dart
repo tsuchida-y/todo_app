@@ -5,8 +5,6 @@ Database? db;
 Future<void> main() async {
   //awaitのエラーを解消するために導入した。
   // 最初に表示するWidget
-  runApp(const MyTodoApp()); //
-
   db = await openDatabase(
     //DBの初期化
     //db=変数・await=非同期処理完了まで待ち、その結果を取り出す。
@@ -22,19 +20,24 @@ Future<void> main() async {
       );
     },
   );
+  WidgetsFlutterBinding.ensureInitialized(); //Vsyncを無効化
+  runApp(const MyTodoApp());
 }
 
 class MyTodoApp extends StatelessWidget {
-  const MyTodoApp({super.key});
+  //StatelessWidgetという親クラスをMyTodoAppクラスに継承する
+  const MyTodoApp({super.key}); //const変数を変えない。super:親クラスのコンストラクタにkeyを渡す
 
-  @override
+  @override //親クラスのメソッドをサブクラスで上書きする
   Widget build(BuildContext context) {
+    //BuildContextを受け取ってWidgetを返す.ここでのcontexは受け取り口
     return MaterialApp(
       // 右上に表示される"debug"ラベルを消す
       debugShowCheckedModeBanner: false,
       // アプリ名
       title: 'My Todo App',
       theme: ThemeData(
+        //theme:デザインを簡単に変更できる。
         // テーマカラー
         primarySwatch: Colors.red,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -47,20 +50,35 @@ class MyTodoApp extends StatelessWidget {
 
 // リスト一覧画面用Widget
 class TodoListPage extends StatefulWidget {
-  const TodoListPage({super.key});
+  const TodoListPage({super.key}); //super:サブクラスから親クラスにアクセスするときに使用
 
   @override
-  TodoListPageState createState() => TodoListPageState();
+  TodoListPageState createState() => //=>は右の結果を左に返す
+      TodoListPageState(); //createStateはビルド後に呼ばれるメソッドで必須
 }
 
 class TodoListPageState extends State<TodoListPage> {
+  late Future<List<Map<String, Object?>>>? todoListQuery;
+
+  @override
+  void initState() {
+    //StatefulWidgetで使用されるウィジェットの初期化時に呼び出されるメソッドです
+    super.initState();
+    todoListQuery = db?.query(
+      'posts',
+      //orderBy: 'created_at DESC', // ソート順
+    );
+  }
+
   // Todoリストのデータ
   List<String> todoList = [];
 
   @override
   Widget build(BuildContext context) {
+    //BuildContext:buildする時に情報を提供する。
     //tabバー
     return DefaultTabController(
+      //タブバーとタブビューを組み合わせて使用する際に、デフォルトのコントローラを提供するものです
       length: 3,
       child: Scaffold(
         // AppBarを表示し、タイトルも設定
@@ -87,30 +105,35 @@ class TodoListPageState extends State<TodoListPage> {
               child: const Text("検索バー"),
             ),
             FutureBuilder(
-                future: db?.query(
-                  'posts',
-                  orderBy: 'created_at DESC', // ソート順
-                ),
+                //非同期処理が完了するまで表示する内容を指定し、非同期処理が完了した際にデータをもとにウィジェットツリーを再構築します
+                future: todoListQuery,
                 builder: (context, snapshot) {
-                  if (snapshot.hasData) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    //snapshot.hasData
+                    debugPrint("hasdata called"); //コンソールにテキストを表示するために使用される
                     return ListView.builder(
-                      shrinkWrap: true, //追加
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: snapshot.data!.length,
+                      //ListView:縦方向や横方向にスクロール可能な項目のリストを作成するために使用されます
+                      shrinkWrap: true, //ウィジェットが子要素に合わせて縮小されるかどうかを制御します。
+                      physics:
+                          const NeverScrollableScrollPhysics(), //スクロールができなくなる
+                      itemCount:
+                          snapshot.data!.length, //nullだった時にエラーを出す。アイテムの総数を表す
                       itemBuilder: (context, index) {
                         return Card(
                           child: ListTile(
-                            title: Text(
-                                snapshot.data?[index]["content"].toString() ??
-                                    "エラー"),
+                            title: Text(snapshot.data?[index]["content"]
+                                    .toString() ?? //?はnullを許容する。
+                                "エラー"), //nullだった時に「エラー」を表示する。
                           ),
                         );
                       },
                     );
                   } else if (snapshot.hasError) {
-                    return Text("エラー");
+                    debugPrint("haser called");
+                    return const Text("エラー");
                   }
-                  return CircularProgressIndicator();
+                  debugPrint("progress called");
+                  return const CircularProgressIndicator(); //アプリケーションが何らかの処理を行っていることをユーザーに示すために使用されます。通常、非同期操作やデータの読み込みなど、処理が完了するまでに時間がかかる場面で使われます。
                 }),
           ],
         ),
