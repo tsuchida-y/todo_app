@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart'; //DBの定義
 
-Database? db;
+Database? db; //DBのインスタンスはDatabaseで定義します
 Future<void> main() async {
+  //async:非同期処理したいメソッドの{の前につける
   //awaitのエラーを解消するために導入した。
   // 最初に表示するWidget
+  debugPrint("初期化前");
+  WidgetsFlutterBinding
+      .ensureInitialized(); //Vsyncを無効化 この行をrun.appの上からopenDatabaseの上に移動したら、起動した！
   db = await openDatabase(
+    // SQLite データベースを開くためのメソッド
     //DBの初期化
-    //db=変数・await=非同期処理完了まで待ち、その結果を取り出す。
-    'example.db',
+    'example.db', //データベースファイルの名前を表している
     version: 1, // onCreateを指定する場合はバージョンを指定する
     onCreate: (db, version) async {
+      //SQLiteデータベースが初めて作成されるときに呼び出される関数
       await db.execute(
+        //与えられた SQL 文をデータベース上で実行します。
         'CREATE TABLE IF NOT EXISTS posts ('
         '  id INTEGER PRIMARY KEY AUTOINCREMENT,' //AUTOINCREMENT=主キーの値を自動で設定
         '  content TEXT,'
@@ -20,7 +26,6 @@ Future<void> main() async {
       );
     },
   );
-  WidgetsFlutterBinding.ensureInitialized(); //Vsyncを無効化
   runApp(const MyTodoApp());
 }
 
@@ -66,7 +71,7 @@ class TodoListPageState extends State<TodoListPage> {
     super.initState();
     todoListQuery = db?.query(
       'posts',
-      //orderBy: 'created_at DESC', // ソート順
+      orderBy: 'created_at DESC', // ソート順
     );
   }
 
@@ -104,11 +109,16 @@ class TodoListPageState extends State<TodoListPage> {
               ),
               child: const Text("検索バー"),
             ),
-            FutureBuilder(
+            //controller = StreamController<int>();//StreamControllerというクラスのインスタンスを作成するコード
+            StreamBuilder(
+
+                //Stream<int> stream = controller.stream;
                 //非同期処理が完了するまで表示する内容を指定し、非同期処理が完了した際にデータをもとにウィジェットツリーを再構築します
-                future: todoListQuery,
+
+                stream: todoListQuery!.asStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
+                    //AsyncSnapshot オブジェクトの connectionState プロパティを確認するもの
                     //snapshot.hasData
                     debugPrint("hasdata called"); //コンソールにテキストを表示するために使用される
                     return ListView.builder(
@@ -175,7 +185,7 @@ class TodoAddPageState extends State<TodoAddPage> {
       ),
       body: Container(
         // 余白を付ける
-        padding: const EdgeInsets.all(64),
+        padding: const EdgeInsets.all(64), //上下左右の各方向に対して同じ値（ここでは64）の余白を作成する
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
@@ -186,6 +196,7 @@ class TodoAddPageState extends State<TodoAddPage> {
             TextField(
               // 入力されたテキストの値を受け取る（valueが入力されたテキスト）
               onChanged: (String value) async {
+                //ユーザーが特定の入力フィールドに対して入力を行った際に発火されるコールバック
                 // データが変更したことを知らせる（画面を更新する）
                 setState(() {
                   // データを変更
@@ -205,11 +216,15 @@ class TodoAddPageState extends State<TodoAddPage> {
                     'posts', // テーブル名
                     {
                       'content': _text, // カラム名: 値
-                      'created_at': DateTime.now().millisecondsSinceEpoch,
+                      'created_at': DateTime.now()
+                          .millisecondsSinceEpoch, //データベースに新しいレコードを挿入する際に、そのレコードが作成された日時を表すための情報を設定しています。
                     },
                   );
+
                   // "pop"で前の画面に戻る
                   // "pop"の引数から前の画面にデータを渡す
+                  //下の行のエラーの解消
+                  // ignore: use_build_context_synchronously
                   Navigator.of(context).pop(_text);
                 },
                 child:
