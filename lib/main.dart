@@ -1,14 +1,19 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:sqflite/sqflite.dart'; //DBの定義
 
 Database? db; //DBのインスタンスはDatabaseで定義します
+// ignore: prefer_typing_uninitialized_variables
+var controller;
+
 Future<void> main() async {
   //async:非同期処理したいメソッドの{の前につける
   //awaitのエラーを解消するために導入した。
   // 最初に表示するWidget
   debugPrint("初期化前");
-  WidgetsFlutterBinding
-      .ensureInitialized(); //Vsyncを無効化 この行をrun.appの上からopenDatabaseの上に移動したら、起動した！
+  WidgetsFlutterBinding.ensureInitialized();
+  //Vsyncを無効化 この行をrun.appの上からopenDatabaseの上に移動したら、起動した
   db = await openDatabase(
     // SQLite データベースを開くためのメソッド
     //DBの初期化
@@ -26,6 +31,7 @@ Future<void> main() async {
       );
     },
   );
+  debugPrint("初期化あと");
   runApp(const MyTodoApp());
 }
 
@@ -64,15 +70,24 @@ class TodoListPage extends StatefulWidget {
 
 class TodoListPageState extends State<TodoListPage> {
   late Future<List<Map<String, Object?>>>? todoListQuery;
-
   @override
   void initState() {
     //StatefulWidgetで使用されるウィジェットの初期化時に呼び出されるメソッドです
     super.initState();
+
+    controller =
+        StreamController<int>(); //StreamControllerというクラスのインスタンスを作成するコード
     todoListQuery = db?.query(
       'posts',
       orderBy: 'created_at DESC', // ソート順
     );
+  }
+
+  @override
+  void dispose() {
+    //ウィジェットやオブジェクトが不要になったときに、それらを解放しリソースをクリーンアップするためのメソッド
+    controller.close(); //ストリームの終了やリソースの解放を行うためのメソッド
+    super.dispose();
   }
 
   // Todoリストのデータ
@@ -109,12 +124,9 @@ class TodoListPageState extends State<TodoListPage> {
               ),
               child: const Text("検索バー"),
             ),
-            //controller = StreamController<int>();//StreamControllerというクラスのインスタンスを作成するコード
             StreamBuilder(
-
                 //Stream<int> stream = controller.stream;
                 //非同期処理が完了するまで表示する内容を指定し、非同期処理が完了した際にデータをもとにウィジェットツリーを再構築します
-
                 stream: todoListQuery!.asStream(),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.done) {
@@ -237,11 +249,9 @@ class TodoAddPageState extends State<TodoAddPage> {
               width: double.infinity,
               // キャンセルボタン
               child: TextButton(
-                // ボタンをクリックした時の処理
                 onPressed: () {
-                  // "pop"で前の画面に戻る
-
-                  Navigator.of(context).pop();
+                  // ボタンをクリックした時の処理
+                  Navigator.of(context).pop(); // "pop"で前の画面に戻る
                 },
                 child: const Text('キャンセル'),
               ),
