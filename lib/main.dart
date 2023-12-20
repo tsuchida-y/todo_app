@@ -124,39 +124,42 @@ class TodoListPageState extends State<TodoListPage> {
               ),
               child: const Text("検索バー"),
             ),
-            StreamBuilder(
-                //Stream<int> stream = controller.stream;
-                //非同期処理が完了するまで表示する内容を指定し、非同期処理が完了した際にデータをもとにウィジェットツリーを再構築します
-                stream: todoListQuery!.asStream(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    //AsyncSnapshot オブジェクトの connectionState プロパティを確認するもの
-                    //snapshot.hasData
-                    debugPrint("hasdata called"); //コンソールにテキストを表示するために使用される
-                    return ListView.builder(
-                      //ListView:縦方向や横方向にスクロール可能な項目のリストを作成するために使用されます
-                      shrinkWrap: true, //ウィジェットが子要素に合わせて縮小されるかどうかを制御します。
-                      physics:
-                          const NeverScrollableScrollPhysics(), //スクロールができなくなる
-                      itemCount:
-                          snapshot.data!.length, //nullだった時にエラーを出す。アイテムの総数を表す
-                      itemBuilder: (context, index) {
-                        return Card(
-                          child: ListTile(
-                            title: Text(snapshot.data?[index]["content"]
-                                    .toString() ?? //?はnullを許容する。
-                                "エラー"), //nullだった時に「エラー」を表示する。
-                          ),
-                        );
-                      },
-                    );
-                  } else if (snapshot.hasError) {
-                    debugPrint("haser called");
-                    return const Text("エラー");
-                  }
-                  debugPrint("progress called");
-                  return const CircularProgressIndicator(); //アプリケーションが何らかの処理を行っていることをユーザーに示すために使用されます。通常、非同期操作やデータの読み込みなど、処理が完了するまでに時間がかかる場面で使われます。
-                }),
+            Expanded(
+              //これでListView.builderをラップして、画面の残りの領域を使用できるようした
+              child: StreamBuilder(
+                  //Stream<int> stream = controller.stream;
+                  //非同期処理が完了するまで表示する内容を指定し、非同期処理が完了した際にデータをもとにウィジェットツリーを再構築します
+                  stream: todoListQuery!.asStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      //AsyncSnapshot オブジェクトの connectionState プロパティを確認するもの
+                      //snapshot.hasData
+                      debugPrint("hasdata called"); //コンソールにテキストを表示するために使用される
+                      return ListView.builder(
+                        //ListView:縦方向や横方向にスクロール可能な項目のリストを作成するために使用されます
+                        shrinkWrap: true, //ウィジェットが子要素に合わせて縮小されるかどうかを制御します。
+                        physics:
+                            const NeverScrollableScrollPhysics(), //スクロールができなくなる
+                        itemCount:
+                            snapshot.data!.length, //nullだった時にエラーを出す。アイテムの総数を表す
+                        itemBuilder: (context, index) {
+                          return Card(
+                            child: ListTile(
+                              title: Text(snapshot.data?[index]["content"]
+                                      .toString() ?? //?はnullを許容する。
+                                  "エラー"), //nullだった時に「エラー」を表示する。
+                            ),
+                          );
+                        },
+                      );
+                    } else if (snapshot.hasError) {
+                      debugPrint("haser called");
+                      return const Text("エラー");
+                    }
+                    debugPrint("progress called");
+                    return const CircularProgressIndicator(); //アプリケーションが何らかの処理を行っていることをユーザーに示すために使用されます。通常、非同期操作やデータの読み込みなど、処理が完了するまでに時間がかかる場面で使われます。
+                  }),
+            )
           ],
         ),
         floatingActionButton: FloatingActionButton(
@@ -235,9 +238,9 @@ class TodoAddPageState extends State<TodoAddPage> {
 
                   // "pop"で前の画面に戻る
                   // "pop"の引数から前の画面にデータを渡す
-                  //下の行のエラーの解消
-                  // ignore: use_build_context_synchronously
-                  Navigator.of(context).pop(_text);
+                  Future.delayed(Duration.zero, () {
+                    Navigator.of(context).pop(_text);
+                  });
                 },
                 child:
                     const Text('リスト追加', style: TextStyle(color: Colors.white)),
