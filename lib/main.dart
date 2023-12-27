@@ -74,9 +74,9 @@ class TodoListPageState extends State<TodoListPage> {
   void initState() {
     //StatefulWidgetで使用されるウィジェットの初期化時に呼び出されるメソッドです
     super.initState();
-
     controller =
         StreamController<int>(); //StreamControllerというクラスのインスタンスを作成するコード
+    debugPrint("押した後");
     todoListQuery = db?.query(
       'posts',
       orderBy: 'created_at DESC', // ソート順
@@ -88,6 +88,10 @@ class TodoListPageState extends State<TodoListPage> {
     //ウィジェットやオブジェクトが不要になったときに、それらを解放しリソースをクリーンアップするためのメソッド
     controller.close(); //ストリームの終了やリソースの解放を行うためのメソッド
     super.dispose();
+  }
+
+  void _updateData() {
+    controller.add(1); // データが更新されたことを通知
   }
 
   // Todoリストのデータ
@@ -138,8 +142,7 @@ class TodoListPageState extends State<TodoListPage> {
                       return ListView.builder(
                         //ListView:縦方向や横方向にスクロール可能な項目のリストを作成するために使用されます
                         shrinkWrap: true, //ウィジェットが子要素に合わせて縮小されるかどうかを制御します。
-                        physics:
-                            const NeverScrollableScrollPhysics(), //スクロールができなくなる
+                        //physics:const NeverScrollableScrollPhysics(), //スクロールができなくなる
                         itemCount:
                             snapshot.data!.length, //nullだった時にエラーを出す。アイテムの総数を表す
                         itemBuilder: (context, index) {
@@ -171,7 +174,10 @@ class TodoListPageState extends State<TodoListPage> {
                 // 遷移先の画面としてリスト追加画面を指定
                 return const TodoAddPage();
               }),
-            );
+            ).then((value) {
+              // リスト追加画面から戻ってきたときにデータを更新
+              _updateData();
+            });
           },
           child: const Icon(Icons.add),
         ),
@@ -210,7 +216,7 @@ class TodoAddPageState extends State<TodoAddPage> {
             // テキスト入力
             TextField(
               // 入力されたテキストの値を受け取る（valueが入力されたテキスト）
-              onChanged: (String value) async {
+              onChanged: (String value) {
                 //ユーザーが特定の入力フィールドに対して入力を行った際に発火されるコールバック
                 // データが変更したことを知らせる（画面を更新する）
                 setState(() {
@@ -235,12 +241,10 @@ class TodoAddPageState extends State<TodoAddPage> {
                           .millisecondsSinceEpoch, //データベースに新しいレコードを挿入する際に、そのレコードが作成された日時を表すための情報を設定しています。
                     },
                   );
-
                   // "pop"で前の画面に戻る
                   // "pop"の引数から前の画面にデータを渡す
-                  Future.delayed(Duration.zero, () {
-                    Navigator.of(context).pop(_text);
-                  });
+
+                  Navigator.of(context).pop(_text);
                 },
                 child:
                     const Text('リスト追加', style: TextStyle(color: Colors.white)),
