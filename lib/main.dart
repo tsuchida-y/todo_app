@@ -8,8 +8,6 @@ Database? db; //DBのインスタンスはDatabaseで定義します
 var controller;
 
 Future<void> main() async {
-  //async:非同期処理したいメソッドの{の前につける
-  //awaitのエラーを解消するために導入した。
   // 最初に表示するWidget
   debugPrint("初期化前");
   WidgetsFlutterBinding.ensureInitialized();
@@ -70,6 +68,7 @@ class TodoListPage extends StatefulWidget {
 
 class TodoListPageState extends State<TodoListPage> {
   late Future<List<Map<String, Object?>>>? todoListQuery;
+  int selectedTabIndex = 0; //タブの選択状態を保持する変数
   @override
   void initState() {
     //StatefulWidgetで使用されるウィジェットの初期化時に呼び出されるメソッドです
@@ -77,10 +76,7 @@ class TodoListPageState extends State<TodoListPage> {
     controller =
         StreamController<int>(); //StreamControllerというクラスのインスタンスを作成するコード
     debugPrint("押した後");
-    todoListQuery = db?.query(
-      'posts',
-      orderBy: 'created_at DESC', // ソート順
-    );
+    // タブごとに異なるクエリを実行
   }
 
   @override
@@ -101,18 +97,50 @@ class TodoListPageState extends State<TodoListPage> {
   Widget build(BuildContext context) {
     //BuildContext:buildする時に情報を提供する。
     //tabバー
+    // build メソッド内でクエリを設定
+    switch (selectedTabIndex) {
+      case 0:
+        todoListQuery = db?.query(
+          'posts',
+          where: 'content LIKE ?',
+          whereArgs: ['%卓球%'],
+          orderBy: 'created_at DESC',
+        );
+        break;
+      case 1:
+        todoListQuery = db?.query(
+          'posts',
+          where: 'content LIKE ?',
+          whereArgs: ['%サッカー%'],
+          orderBy: 'created_at DESC',
+        );
+        break;
+      case 2:
+        todoListQuery = db?.query(
+          'posts',
+          where: 'content LIKE ?',
+          whereArgs: ['%テニス%'],
+          orderBy: 'created_at DESC',
+        );
+        break;
+    }
     return DefaultTabController(
       //タブバーとタブビューを組み合わせて使用する際に、デフォルトのコントローラを提供するものです
       length: 3,
       child: Scaffold(
         // AppBarを表示し、タイトルも設定
         appBar: AppBar(
-          bottom: const TabBar(
-            tabs: <Widget>[
+          bottom: TabBar(
+            tabs: const <Widget>[
               Tab(text: '卓球'),
               Tab(text: 'サッカー'),
               Tab(text: 'テニス'),
             ],
+            onTap: (index) {
+              setState(() {
+                selectedTabIndex = index; //タブが選択されたときに変数を更新
+              });
+            },
           ),
           title: const Text('リスト'),
         ),
@@ -172,7 +200,7 @@ class TodoListPageState extends State<TodoListPage> {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (context) {
                 // 遷移先の画面としてリスト追加画面を指定
-                return const TodoAddPage();
+                return TodoAddPage(tabIndex: selectedTabIndex);
               }),
             ).then((value) {
               // リスト追加画面から戻ってきたときにデータを更新
@@ -187,7 +215,8 @@ class TodoListPageState extends State<TodoListPage> {
 }
 
 class TodoAddPage extends StatefulWidget {
-  const TodoAddPage({super.key});
+  final int tabIndex; // タブの選択状態を保持する変数
+  const TodoAddPage({Key? key, required this.tabIndex}) : super(key: key);
 
   @override
   TodoAddPageState createState() => TodoAddPageState();
@@ -200,6 +229,23 @@ class TodoAddPageState extends State<TodoAddPage> {
   // データを元に表示するWidget
   @override
   Widget build(BuildContext context) {
+    // タブの選択状態を使って適切な処理を行う
+    switch (widget.tabIndex) {
+      case 0:
+        debugPrint("卓球");
+        // 卓球の処理
+        break;
+      case 1:
+        debugPrint("サッカー");
+        // サッカーの処理
+        break;
+      case 2:
+        debugPrint("テニス");
+        // テニスの処理
+        break;
+      default:
+        break;
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text('リスト追加'),
@@ -240,11 +286,7 @@ class TodoAddPageState extends State<TodoAddPage> {
                       'created_at': DateTime.now()
                           .millisecondsSinceEpoch, //データベースに新しいレコードを挿入する際に、そのレコードが作成された日時を表すための情報を設定しています。
                     },
-                  );
-                  // "pop"で前の画面に戻る
-                  // "pop"の引数から前の画面にデータを渡す
-
-                  Navigator.of(context).pop(_text);
+                  ).then((value) => Navigator.of(context).pop(_text)); //.then
                 },
                 child:
                     const Text('リスト追加', style: TextStyle(color: Colors.white)),
