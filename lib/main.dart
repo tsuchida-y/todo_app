@@ -21,7 +21,7 @@ Future<void> main() async {
       //SQLiteデータベースが初めて作成されるときに呼び出される関数
       await db.execute(
         //与えられた SQL 文をデータベース上で実行します。
-        'CREATE TABLE IF NOT EXISTS posts ('
+        'CREATE TABLE IF NOT EXISTS todos ('
         '  id INTEGER PRIMARY KEY AUTOINCREMENT,' //AUTOINCREMENT=主キーの値を自動で設定
         '  content TEXT,'
         '  created_at INTEGER'
@@ -99,31 +99,32 @@ class TodoListPageState extends State<TodoListPage> {
     //tabバー
     // build メソッド内でクエリを設定
     switch (selectedTabIndex) {
+      //ここから
       case 0:
         todoListQuery = db?.query(
-          'posts',
+          'todos',
           where: 'content LIKE ?',
-          whereArgs: ['%卓球%'],
+          whereArgs: ['%%'], //ハードコード
           orderBy: 'created_at DESC',
         );
         break;
       case 1:
         todoListQuery = db?.query(
-          'posts',
+          'todos',
           where: 'content LIKE ?',
-          whereArgs: ['%サッカー%'],
+          whereArgs: ['%%'],
           orderBy: 'created_at DESC',
         );
         break;
       case 2:
         todoListQuery = db?.query(
-          'posts',
+          'todos',
           where: 'content LIKE ?',
-          whereArgs: ['%テニス%'],
+          whereArgs: ['%%'],
           orderBy: 'created_at DESC',
         );
         break;
-    }
+    } // ここまで
     return DefaultTabController(
       //タブバーとタブビューを組み合わせて使用する際に、デフォルトのコントローラを提供するものです
       length: 3,
@@ -167,6 +168,7 @@ class TodoListPageState extends State<TodoListPage> {
                       //AsyncSnapshot オブジェクトの connectionState プロパティを確認するもの
                       //snapshot.hasData
                       debugPrint("hasdata called"); //コンソールにテキストを表示するために使用される
+                      debugPrint(snapshot.data.toString());
                       return ListView.builder(
                         //ListView:縦方向や横方向にスクロール可能な項目のリストを作成するために使用されます
                         shrinkWrap: true, //ウィジェットが子要素に合わせて縮小されるかどうかを制御します。
@@ -280,7 +282,7 @@ class TodoAddPageState extends State<TodoAddPage> {
                 onPressed: () async {
                   await db?.insert(
                     //DBに保存
-                    'posts', // テーブル名
+                    'todos', // テーブル名
                     {
                       'content': _text, // カラム名: 値
                       'created_at': DateTime.now()
